@@ -1,0 +1,11 @@
+---
+# Addresses that fail2ban must never ban (localhost and the dev server that runs Ansible).
+fail2ban_ignore_ips:
+  - 127.0.0.1/8
+  - "::1"
+  - 172.31.30.66
+
+# Ban an address for this long after too many failed SSH logins.
+fail2ban_bantime: 1h
+fail2ban_findtime: 10m
+fail2ban_maxretry: 5
