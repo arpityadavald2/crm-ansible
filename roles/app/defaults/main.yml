@@ -1,0 +1,11 @@
+---
+# Where the compose stack lives on the server.
+app_stack_dir: /opt/crm/stack
+
+# Non-secret settings.
+app_mysql_database: crm
+app_mysql_user: crm_app
+
+# Secrets come from the encrypted inventory/group_vars/crm_servers/vault.yml.
+app_mysql_root_password: "{{ vault_mysql_root_password }}"
+app_mysql_password: "{{ vault_mysql_password }}"
