@@ -1,0 +1,32 @@
+---
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ansible:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Ansible tools
+        run: python -m pip install ansible-core==2.20.1 ansible-lint==26.1.1
+
+      - name: Syntax check
+        run: ansible-playbook playbooks/ping.yml --syntax-check
+
+      - name: Lint
+        run: ansible-lint
