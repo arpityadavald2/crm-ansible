@@ -1,0 +1,15 @@
+---
+- name: Install baseline packages
+  ansible.builtin.apt:
+    name: "{{ base_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create the application directory
+  ansible.builtin.file:
+    path: "{{ base_app_dir }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"

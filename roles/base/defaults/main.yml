@@ -1,0 +1,10 @@
+---
+# Packages every CRM server should have.
+base_packages:
+  - ca-certificates
+  - curl
+  - htop
+  - unzip
+
+# Folder where the CRM files will live later.
+base_app_dir: /opt/crm
