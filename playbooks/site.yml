@@ -6,3 +6,4 @@
     - role: base
     - role: docker
     - role: unattended_upgrades
+    - role: fail2ban
