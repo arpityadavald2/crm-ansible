@@ -26,7 +26,9 @@ jobs:
         run: python -m pip install ansible-core==2.20.1 ansible-lint==26.1.1
 
       - name: Syntax check
-        run: ansible-playbook playbooks/ping.yml --syntax-check
+        run: |
+          ansible-playbook playbooks/ping.yml --syntax-check
+          ansible-playbook playbooks/site.yml --syntax-check
 
       - name: Lint
         run: ansible-lint
