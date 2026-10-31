@@ -1,0 +1,7 @@
+# Never commit keys, vault passwords or retry files.
+*.pem
+*.key
+id_*
+crm-target
+.vault_pass
+*.retry
