@@ -1,0 +1,38 @@
+---
+- name: Create the stack directory
+  ansible.builtin.file:
+    path: "{{ app_stack_dir }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0750"
+
+- name: Copy the compose file
+  ansible.builtin.copy:
+    src: docker-compose.yml
+    dest: "{{ app_stack_dir }}/docker-compose.yml"
+    owner: ubuntu
+    group: ubuntu
+    mode: "0644"
+
+- name: Write the environment file with secrets
+  ansible.builtin.copy:
+    dest: "{{ app_stack_dir }}/.env"
+    owner: ubuntu
+    group: ubuntu
+    mode: "0600"
+    content: |
+      MYSQL_ROOT_PASSWORD={{ app_mysql_root_password }}
+      MYSQL_DATABASE={{ app_mysql_database }}
+      MYSQL_USER={{ app_mysql_user }}
+      MYSQL_PASSWORD={{ app_mysql_password }}
+  no_log: true
+
+- name: Start MySQL and Redis and wait until they are healthy
+  ansible.builtin.command: docker compose up -d --wait --wait-timeout 180
+  args:
+    chdir: "{{ app_stack_dir }}"
+  register: app_compose_up
+  changed_when: >-
+    ('Started' in app_compose_up.stderr) or ('Created' in app_compose_up.stderr)
+    or ('Recreated' in app_compose_up.stderr)
