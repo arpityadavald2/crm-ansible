@@ -8,3 +8,12 @@ base_packages:
 
 # Folder where the CRM files will live later.
 base_app_dir: /opt/crm
+
+# Root disk growth (after the EBS volume was made bigger in Terraform).
+base_root_disk: /dev/nvme0n1
+base_root_partition: 1
+base_root_device: /dev/nvme0n1p1
+
+# Swap file (the target has only about 900 MB RAM and no swap).
+base_swap_file: /swapfile
+base_swap_size_mb: 2048
