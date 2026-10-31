@@ -13,3 +13,51 @@
     owner: ubuntu
     group: ubuntu
     mode: "0755"
+
+- name: Grow the root partition to fill the disk
+  ansible.builtin.command: "growpart {{ base_root_disk }} {{ base_root_partition }}"
+  register: base_growpart
+  changed_when: "'CHANGED' in base_growpart.stdout"
+  failed_when: base_growpart.rc != 0 and 'NOCHANGE' not in base_growpart.stdout
+
+- name: Grow the root filesystem to fill the partition
+  ansible.builtin.command: "resize2fs {{ base_root_device }}"
+  register: base_resize2fs
+  changed_when: "'Nothing to do' not in (base_resize2fs.stdout + base_resize2fs.stderr)"
+
+- name: Create the swap file
+  ansible.builtin.command: "fallocate -l {{ base_swap_size_mb }}M {{ base_swap_file }}"
+  args:
+    creates: "{{ base_swap_file }}"
+  register: base_swap_created
+
+- name: Restrict swap file permissions
+  ansible.builtin.file:
+    path: "{{ base_swap_file }}"
+    owner: root
+    group: root
+    mode: "0600"
+  when: not ansible_check_mode
+
+- name: Check whether the swap file is already formatted
+  ansible.builtin.command: "blkid -p -o value -s TYPE {{ base_swap_file }}"
+  register: base_swap_type
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Format the swap file
+  ansible.builtin.command: "mkswap {{ base_swap_file }}"
+  changed_when: true
+  when: base_swap_type.stdout | default('') != 'swap'
+
+- name: Make swap permanent in fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: '^{{ base_swap_file }}\s'
+    line: "{{ base_swap_file }} none swap sw 0 0"
+
+- name: Enable swap now
+  ansible.builtin.command: "swapon {{ base_swap_file }}"
+  changed_when: true
+  when: ansible_facts['swaptotal_mb'] | int == 0
