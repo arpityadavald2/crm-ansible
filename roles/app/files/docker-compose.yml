@@ -53,6 +53,55 @@ services:
       timeout: 3s
       retries: 10
 
+  app:
+    image: ghcr.io/arpityadavald2/crm-app:${APP_IMAGE_TAG:?set APP_IMAGE_TAG in .env}
+    container_name: crm-app
+    restart: unless-stopped
+    mem_limit: 200m
+    environment: &app_env
+      NODE_ENV: production
+      PORT: '3000'
+      DB_HOST: mysql
+      DB_PORT: '3306'
+      DB_NAME: ${MYSQL_DATABASE:-crm}
+      DB_USER: ${MYSQL_USER:-crm_app}
+      DB_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      APP_VERSION: ${APP_IMAGE_TAG}
+    ports:
+      - '127.0.0.1:3000:3000'
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    image: ghcr.io/arpityadavald2/crm-app:${APP_IMAGE_TAG:?set APP_IMAGE_TAG in .env}
+    container_name: crm-worker
+    restart: unless-stopped
+    mem_limit: 150m
+    command: ['node', 'dist/worker.js']
+    # the worker has no HTTP port, so the image healthcheck must be off
+    healthcheck:
+      disable: true
+    environment: *app_env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  migrate:
+    image: ghcr.io/arpityadavald2/crm-app:${APP_IMAGE_TAG:?set APP_IMAGE_TAG in .env}-migrate
+    profiles: ['tools']
+    environment: *app_env
+    depends_on:
+      mysql:
+        condition: service_healthy
+
 volumes:
   mysql_data:
   redis_data:
