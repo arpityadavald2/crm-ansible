@@ -1,0 +1,13 @@
+---
+- name: Deploy a specific CRM image version
+  hosts: crm_servers
+  become: true
+  pre_tasks:
+    - name: Require an explicit image tag that is a full commit SHA
+      ansible.builtin.assert:
+        that:
+          - app_image_tag is match('^[0-9a-f]{40}$')
+        fail_msg: "Pass the version with -e app_image_tag=<40-character commit SHA>"
+        quiet: true
+  roles:
+    - role: app
