@@ -26,13 +26,31 @@
       MYSQL_DATABASE={{ app_mysql_database }}
       MYSQL_USER={{ app_mysql_user }}
       MYSQL_PASSWORD={{ app_mysql_password }}
+      JWT_SECRET={{ app_jwt_secret }}
+      APP_IMAGE_TAG={{ app_image_tag }}
   no_log: true
 
 - name: Start MySQL and Redis and wait until they are healthy
-  ansible.builtin.command: docker compose up -d --wait --wait-timeout 180
+  ansible.builtin.command: docker compose up -d --wait --wait-timeout 180 mysql redis
   args:
     chdir: "{{ app_stack_dir }}"
-  register: app_compose_up
+  register: app_infra_up
   changed_when: >-
-    ('Started' in app_compose_up.stderr) or ('Created' in app_compose_up.stderr)
-    or ('Recreated' in app_compose_up.stderr)
+    ('Started' in app_infra_up.stderr) or ('Created' in app_infra_up.stderr)
+    or ('Recreated' in app_infra_up.stderr)
+
+- name: Run database migrations
+  ansible.builtin.command: docker compose run --rm migrate up
+  args:
+    chdir: "{{ app_stack_dir }}"
+  register: app_migrate
+  changed_when: "'applied' in app_migrate.stdout"
+
+- name: Start the app and the worker and wait until they are healthy
+  ansible.builtin.command: docker compose up -d --wait --wait-timeout 180 app worker
+  args:
+    chdir: "{{ app_stack_dir }}"
+  register: app_services_up
+  changed_when: >-
+    ('Started' in app_services_up.stderr) or ('Created' in app_services_up.stderr)
+    or ('Recreated' in app_services_up.stderr)

@@ -2,6 +2,10 @@
 # Where the compose stack lives on the server.
 app_stack_dir: /opt/crm/stack
 
+# Container image (built and pushed by the crm-app CI). Pin a commit SHA, never "latest".
+app_image_repo: ghcr.io/arpityadavald2/crm-app
+app_image_tag: d55ff72b6430556b2d4fc30385f440bcbda3c321
+
 # Non-secret settings.
 app_mysql_database: crm
 app_mysql_user: crm_app
@@ -9,3 +13,4 @@ app_mysql_user: crm_app
 # Secrets come from the encrypted inventory/group_vars/crm_servers/vault.yml.
 app_mysql_root_password: "{{ vault_mysql_root_password }}"
 app_mysql_password: "{{ vault_mysql_password }}"
+app_jwt_secret: "{{ vault_jwt_secret }}"
